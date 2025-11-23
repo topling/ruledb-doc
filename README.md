@@ -21,7 +21,7 @@ or    | `\|\|`        |  低
 `中国 - 日本` | 包含 `中国`不包含`日本`
 
 ## 原子查询
-诸如上面 `中国`，`人民`这样部分属于原子查询，原子查询还可以是正则表达式(后面介绍)。
+诸如上面 `中国`，`人民`这样的部分属于原子查询，原子查询还可以是正则表达式(后面介绍)。
 
 原子查询可以加引号来明确，例如 `"中国-2025年GDP"`，因为如果不加引号，就会解释为 `中国 - 2025年GDP`。引号包起来的部分可以包含特殊字符与C语言转义字符。
 
@@ -106,27 +106,29 @@ rule_db_build.exe <选项>  <规则源码文件>
 -h    | 无参数   | 打印帮助信息
 -o    | 输出目录 | 编译输出的二进制规则数据库，包含多个文件，目录中的现存文件会被覆盖，如果目录不存在会自动创建。<br>建议编译前删除输出目录以获得干净的编译结果。
 -F    | 字段名   | 添加一个用户自定义字段，可以包含多个 -F
--q    | 无参数   | 不打印进度信息
+-q    | 无参数   | 不打印进度及不重要的警告信息等
+-W    | 文件名   | 指定一个词频文件(word \\t freq)，用来优化 allof/anyof<br>所有词频相关的错误都会被忽略
 
 rule_db_build.exe 执行完后，会在输出目录下生成一些文件，其中包含一个 Makefile，再进入该目录执行 make 才会将数据库完全建好。我们提供了 rule_db_build.sh 脚本用来自动化这个流程，其用法与 rule_db_build.exe 相同，额外会自动运行 make 将数据库完全建好。
 
-输出目录中包含一个重要文件 rule_id_map.txt，其中内容第一列是 rule_id，第二列是规则库源文件中的业务关联数据。第一列的 rule_id 总是从 0 到 n-1, n 为成功编译的规则，编译失败的规则被自动忽略，不分配 rule_id，不会出现在 rule_id_map.txt 中。
+输出目录中包含一个重要文件 rule_id_map.txt，其中内容(tab分隔)第一列是 rule_id，第二列是规则库源文件中的业务关联数据。第一列的 rule_id 总是从 0 到 n-1, n 为成功编译的规则，编译失败的规则被自动忽略，不分配 rule_id，不会出现在 rule_id_map.txt 中。
 
 ## API 示例用法
 
 ```c++
 #include <rule_db.h>
-RuleDatabase db;
+RuleDatabase db; // 打开后是只读对象，可多线程使用
 if (!db.open(dbdir)) {
     printf("FATAL: db.open(%s) = %s\n", dbdir, db.strerr());
     return 1;
 }
-RuleMatcher matcher; // 可复用 matcher 对象，减少内存分配次数
+RuleMatcher matcher; // 可复用 matcher 对象，减少内存分配次数，不可多线程使用
 if (!matcher.init(db)) {
     printf("FATAL: matcher.init(%s) = %s\n", dbdir, matcher.strerr());
     return 1;
 }
 // true 表示对未知字段不报错，而是将所有未知字段拼接后作为通用字段内容
+// 默认就是 true，这里只是明确设置一下
 matcher.ignore_unknown_fields(true);
 map<string, shared_ptr<string> > doc; // 文档就是一个简单的 map
 // 1. rule 中定义的无 fieldname 的表达式不会自动匹配所有已知字段
@@ -135,9 +137,9 @@ auto title = make_shared<string>(doc_from_db.title);
 auto content = make_shared<string>(doc_from_db.content);
 doc["title"]    = title;
 doc["content"]  = content;
-// 规则库中存在未指定字段的表达式，想让它匹配 title 和 content
-// 在这里故意指定规则库中未定义的字段名 .title 和 .content 来
-// 触发前述 ignore_unknown_fields(true) 的语义
+// 如果想让规则库中 未指定字段的表达式 匹配 title 和 content，
+// 就在这里故意指定规则库中未定义的字段名 .title 和 .content 来
+// 触发前述“未知字段匹配无字段名的表达式”的语义行为
 doc[".title"]   = title;
 doc[".content"] = content;
 if (!matcher.match(doc)) {

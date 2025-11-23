@@ -35,6 +35,8 @@
 
 并且，相比多条 and 和 or 以及原子匹配，allof 和 anyof 的虚拟机代码更短。
 
+> 需要 rule_db_build.sh -W word_freq_file 传入词频定义(word \\t freq)，否则没有词频优化
+
 ### 链式 near
 
 一般的 near 表达式的两个子表达式都是原子，并且作为 or 或 and 的子表达式出现。这会直接生成单个虚拟机的原子 near 指令。
