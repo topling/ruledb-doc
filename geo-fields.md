@@ -9,7 +9,8 @@ $\text{Geohash}$ 是一种将二维的经纬度坐标编码为一个**一维字�
 * **前缀越长，网格区域越小，精度越高。**
 * **拥有相同前缀的 $\text{Geohash}$ 码，在地理位置上是邻近的。**
 
-我们利用 $\text{Geohash}$ 的前缀特性，通过**正则前缀匹配**来实现 **“点在区域内”** 的查询。
+我们利用 $\text{Geohash}$ 的前缀特性，通过**正则前缀匹配**来实现 **“点在区域内”** 的查询，
+这种查询必须**完全匹配**字段的所有内容，所以只能使用fieldname{{}} 或 fieldname[]，不能使用 fieldname(...)。
 
 ## 规则定义：简单区域限定
 
@@ -21,7 +22,7 @@ $\text{Geohash}$ 是一种将二维的经纬度坐标编码为一个**一维字�
 
 ```
 # 匹配以 u4pruy 开头的所有 geohash
-user_location({{u4pruy[0-9a-z]*}})
+user_location{{u4pruy[0-9a-z]*}}
 ```
 
 ### 2. 规则（多区域 OR 关系）
@@ -30,7 +31,7 @@ user_location({{u4pruy[0-9a-z]*}})
 
 ```
 # 匹配三个不连续的区域
-user_location({{(u4pruy|u4prqg|u4p1k2)[0-9a-z]*}})
+user_location{{(u4pruy|u4prqg|u4p1k2)[0-9a-z]*}}
 ```
 
 ## 复合查询：区域的并、交、差运算
@@ -43,7 +44,7 @@ user_location({{(u4pruy|u4prqg|u4p1k2)[0-9a-z]*}})
 
 **规则定义：**
 ```
-user_location([ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ])
+user_location[ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ]
 ```
 * `{{dr5r[0-9a-z]*}}`：召回所有位于大区域 $\text{A}$ 内的 $\text{doc}$。
 * `{{dr5ru[0-9a-z]*}}`：召回所有位于子区域 $\text{B}$ 内的 $\text{doc}$。
@@ -56,10 +57,10 @@ user_location([ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ])
 
 **规则定义：**
 ```
-gender_age_income_location([ \
+gender_age_income_location[ \
     {{1[\i{20}-\i{25}][\i{8000}-\i{10000}]}} . \
     ( {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ) \
-])
+]
 ```
 
 其中 `\` 是续行符，`.` 操作符是复合正则表达式的 **连接** 操作。**连接** 的含义实际上就是逐个检查各个条件，都满足时，（表示文档/数据项的）字符串匹配成功。
