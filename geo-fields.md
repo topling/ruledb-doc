@@ -109,7 +109,7 @@ rule_db_build.sh -F user_location \
 map<string, shared_ptr<string> > doc;
 // 实际生产中，需要根据查询规则的要求确定 Geohash 的长度
 shared_ptr<string> geohash_code = make_shared<string>("dr5rbp");
-doc["user_location"] = geohash_code;
+// doc["user_location"] = geohash_code; // 应优先精确条件
 doc["gender_age_income_location"] = gender_age_income_location;
 matcher.match(doc);
 ```
