@@ -6,7 +6,8 @@ Topling 规则数据库的功能是：将 $$\color{#DC143C}{预定义规则}$$ �
 百万条以上的规则，每条规则的表达式可以任意复杂。表达式的原生数据类型是字符串，也能
 高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)，以及不限宽度的[整数(范围)](bigint.md)。
 
-Topling 规则数据库是商业软件，未开源也未开放下载。开源的仅有文档。
+Topling 规则数据库是商业软件，虽未开源也未开放下载，但底层的正则表达式引擎、正则语言代数运算、NFA/DFA lib 是[开源的](https://github.com/topling/topling-ark)。
+
 ## 规则表达式
 
 二元操作符 | 操作符别名 | 优先级
