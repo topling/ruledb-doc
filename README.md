@@ -4,7 +4,7 @@ Topling 规则数据库的功能是：将 $$\color{#DC143C}{预定义规则}$$ �
 应用场景包括：敏感词检测、广告定向、数据分类、事件分流、自动打标签等，比现存其它方案
 (例如drools/ElasticSearch percolator等)性能高至少一个数量级，规则越多，优势越突出，支持
 百万条以上的规则，每条规则的表达式可以任意复杂。表达式的原生数据类型是字符串，也能
-高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)。
+高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)，以及不限宽度的[整数(范围)](bigint.md)。
 
 Topling 规则数据库是商业软件，未开源也未开放下载。开源的仅有文档。
 ## 规则表达式
