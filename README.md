@@ -161,17 +161,16 @@ if (!matcher.init(db)) {
 // 默认就是 true，这里只是明确设置一下
 matcher.ignore_unknown_fields(true);
 map<string, shared_ptr<string> > doc; // 文档就是一个简单的 map
-// 1. rule 中定义的无 fieldname 的表达式不会自动匹配所有已知字段
-// 2. 未知字段匹配无字段名的表达式(ignore_unknown_fields(true))
+// 1. rule 中定义的无 fieldname 的表达式会被当做 content 字段的表达式
+// 2. 未知字段会按 content 字段进行匹配(需要ignore_unknown_fields(true))
 auto title = make_shared<string>(doc_from_db.title);
 auto content = make_shared<string>(doc_from_db.content);
 doc["title"]    = title;
 doc["content"]  = content;
-// 如果想让规则库中 未指定字段的表达式 匹配 title 和 content，
-// 就在这里故意指定规则库中未定义的字段名 .title 和 .content 来
-// 触发前述“未知字段匹配无字段名的表达式”的语义行为
+// 如果想让规则库中 未指定字段的表达式 匹配 title，
+// 就在这里故意指定规则库中未定义的字段名 .title
+// 触发前述“未知字段按 content 字段匹配”的语义行为
 doc[".title"]   = title;
-doc[".content"] = content;
 if (!matcher.match(doc)) {
     printf("matcher.match(doc) = %s", matcher.strerr());
     return 1;
