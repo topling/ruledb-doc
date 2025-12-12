@@ -4,7 +4,7 @@ Topling 规则数据库的功能是：将 $$\color{#DC143C}{预定义规则}$$ �
 应用场景包括：敏感词检测、广告定向、数据分类、事件分流、自动打标签等，比现存其它方案
 (例如drools/ElasticSearch percolator等)性能高至少一个数量级，规则越多，优势越突出，支持
 百万条以上的规则，每条规则的表达式可以任意复杂。表达式的原生数据类型是字符串，也能
-高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)，以及不限宽度的[整数(范围)](bigint.md)。
+高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)，以及不限宽度的[整数(范围)](bigint.md)，[实数(范围)](realnum.md)，支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)。
 
 Topling 规则数据库是商业软件，虽未开源也未开放下载，但底层的正则表达式引擎、正则语言代数运算、NFA/DFA lib 是[开源的](https://github.com/topling/topling-ark)。
 
@@ -133,6 +133,7 @@ rule_db_build.exe <选项>  <规则源码文件>
  选项 | 参数 | 解释说明
 ------| --------|-------------------------
 -h    | 无参数   | 打印帮助信息
+-i    | 联合索引 | s{sepa}(field1,field2,...)，其中 s{sepa} 是可选的，省略时 sepa 是 `\0`, [示例用法](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)
 -o    | 输出目录 | 编译输出的二进制规则数据库，包含多个文件，目录中的现存文件会被覆盖，如果目录不存在会自动创建。<br>建议编译前删除输出目录以获得干净的编译结果。
 -F    | 字段名   | 添加一个用户自定义字段，可以包含多个 -F
 -q    | 无参数   | 不打印进度及不重要的警告信息等
