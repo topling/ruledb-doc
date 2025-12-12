@@ -9,6 +9,7 @@
 年龄我们用 1/0 表示男女，年龄、收入都是整数。现在要表达性别为男 and 年龄为 25 到 35 岁，收入为 12000 到 18000 的这样一个限制条件。
 
 我们增加一个伪字段 `gender_age_income` ，其内容是三个字段的**串接**，该查询条件就可以表达为一条规则：
+> RuleDB 支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)，此处仅作为原理性展示
 
 ```
 gender_age_income({{1[\i{25}-\i{48}][\i{12000}-\i{18000}]}}) <tab> rule_1

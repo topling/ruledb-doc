@@ -52,6 +52,7 @@ user_location[ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ]
 
 ### 2. 案例：区域限定与其它限定混合
 **需求：** 匹配区域 $\text{A}$ 和区域 $\text{B}$ 的共同交集，并且性别为男，年龄 20 到 25 岁，收入 8000 到 10000。
+> RuleDB 支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)，此处仅作为原理性展示
 
 提示：参考[整数字段](integer-fields.md) 限定。
 

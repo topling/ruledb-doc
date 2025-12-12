@@ -34,6 +34,8 @@
 `{i{0,255}}` 是简单直接的。
 
 ## 复杂点的例子
+> RuleDB 支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)，此处仅作为原理性展示
+
 我们仍以 [integer-fields.md](integer-fields.md) 中的 gender_age_income 为例：
 ```
 gender_age_income["0 ".{i{26,30}}." ".{i{12000,18000}}]
