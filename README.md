@@ -150,7 +150,9 @@ rule_db_build.exe 执行完后，会在输出目录下生成一些文件，其�
 输出目录中包含一个重要文件 rule_id_map.txt，其中内容(tab分隔)第一列是 rule_id，第二列是规则库源文件中的业务关联数据。第一列的 rule_id 总是从 0 到 n-1, n 为成功编译的规则，编译失败的规则被自动忽略，不分配 rule_id，不会出现在 rule_id_map.txt 中。
 
 ## API 示例用法
+这里是一个[完整的示例程序](match_doc.cpp)。
 
+### 1. 打开数据库
 ```c++
 #include <rule_db.h>
 RuleDatabase db; // 打开后是只读对象，可多线程使用
@@ -158,6 +160,10 @@ if (!db.open(dbdir)) {
     printf("FATAL: db.open(%s) = %s\n", dbdir, db.strerr());
     return 1;
 }
+```
+
+### 2. 关联业务数据
+```c++
 // 需要读取 dbdir/rule_id_map.txt 将 rule_id 与业务数据关联起来，
 // db.load_rule_map 是个实现该功能的工具函数
 vector<int> rule_id_to_category_id; // 业务类别ID
@@ -175,6 +181,11 @@ if (ret < 0) {
     printf("FATAL: db.load_rule_map() = %s\n", db.strerr());
     return 1;
 }
+```
+
+### 3. 创建匹配器，设置匹配选项
+db 的生存期必须覆盖 matcher 的生存期。
+```c++
 RuleMatcher matcher; // 可复用 matcher 对象，减少内存分配次数，不可多线程使用
 if (!matcher.init(db)) {
     printf("FATAL: matcher.init(%s) = %s\n", dbdir, matcher.strerr());
@@ -183,9 +194,15 @@ if (!matcher.init(db)) {
 // true 表示对未知字段不报错，而是将所有未知字段拼接后作为通用字段内容
 // 默认就是 true，这里只是明确设置一下
 matcher.ignore_unknown_fields(true);
+```
+
+### 4. 构造文档对象
+1. rule 中定义的无 fieldname 的表达式会被当做 content 字段的表达式
+1. 未知字段会按 content 字段进行匹配(需要ignore_unknown_fields(true))
+
+### 4.1. 最简单的情况
+```c++
 map<string, shared_ptr<string> > doc; // 文档就是一个简单的 map
-// 1. rule 中定义的无 fieldname 的表达式会被当做 content 字段的表达式
-// 2. 未知字段会按 content 字段进行匹配(需要ignore_unknown_fields(true))
 auto title = make_shared<string>(doc_from_db.title);
 auto content = make_shared<string>(doc_from_db.content);
 doc["title"]    = title;
@@ -194,6 +211,72 @@ doc["content"]  = content;
 // 就在这里故意指定规则库中未定义的字段名 .title
 // 触发前述“未知字段按 content 字段匹配”的语义行为
 doc[".title"]   = title;
+```
+### 4.2. ComplexQuery
+文档对象作为一个“搜索匹配的规则”的查询器，它可以更加复杂，每个字段都可以是前述的“[复合正则表达式](#复合正则表达式)”。
+db.match 对规则中的正则表达式(对应的DFA)和 doc 中的正则表达式(对应的DFA)求交集来实现搜索。
+```c++
+map<string, RuleMatcher::ComplexQuery> doc; // 文档就是一个简单的 map
+auto title = make_shared<string>(doc_from_db.title);
+auto content = make_shared<string>(doc_from_db.content);
+doc["title"]   = {title, false};
+doc["content"] = {content, false};
+doc[".title"]  = {title, false}; // 见 4.1.
+doc["gender"]  = {make_shared<string>("1"), false};
+doc["age"]     = {make_shared<string>("28"), false};
+doc["income"]  = { // 收入在这个范围内浮动
+    make_shared<string>("{i{15000,23000}}"), // text 成员
+    true, // is_regex 成员
+};
+doc["interesting"] = {
+    make_shared<string>("运动|电影|美食"), // text 成员
+    true, // is_regex 成员
+};
+doc["books"] = {
+    make_shared<string>("红楼梦|水浒|红与黑"), // text 成员
+    true, // is_regex 成员
+};
+```
+### 4.3. Json 字符串作为 doc
+```c++
+const char* docjson = R"json({
+    "title": "...",
+    "content": "...",
+    ".title": "...",
+    "gender": "1",
+    "age": "28",
+    "income": {
+        "text": "{i{15000,23000}}",
+        "is_regex": true
+    },
+    "interesting": {
+        "text": "运动|电影|美食",
+        "is_regex": true
+    },
+    "books": {
+        "text": "红楼梦|水浒|红与黑",
+        "is_regex": true
+    }
+})json";
+// 注意: match(c_str_docjson) 是禁止调用的，会编译出错
+if (!matcher.match(docjson, strlen(docjson))) {
+    printf("matcher.match(doc) = %s", matcher.strerr());
+    return 1;
+}
+// 或(编译器支持 string_view 时)
+if (!matcher.match(string_view(docjson))) {
+    printf("matcher.match(doc) = %s", matcher.strerr());
+    return 1;
+}
+// 或(编译器不支持 string_view 时)，应尽可能使用前两个重载
+if (!matcher.match(string(docjson))) {
+    printf("matcher.match(doc) = %s", matcher.strerr());
+    return 1;
+}
+```
+
+### 5. 执行匹配
+```c++
 if (!matcher.match(doc)) {
     printf("matcher.match(doc) = %s", matcher.strerr());
     return 1;
@@ -202,14 +285,21 @@ auto& matchset = matcher.get_result();
 if (matchset.empty()) {
     // 没有命中任何规则
 }
+```
+
+### 6. 打印匹配结果
+```c++
 for (int rule_id : matchset) {
     printf(" %d(category %d)", rule_id, rule_id_to_category_id[rule_id]);
     if (SomeCondition(rule_id_to_category_id[rule_id])) {
-        for (auto& [fieldname, pos_vec] = matcher.get_match_pos(rule_id)) {
+        for (auto& [fieldname, pos_vec] : matcher.get_match_pos(rule_id)) {
             // print fieldname & pos_vec
         }
     }
 }
 ```
+get_match_pos 涉及匹配路径的回溯，单次调用开销一般在30微秒($$30\mu s$$)级别。
+虽然相比同类方案有数量级的优势，但相比 ruledb 自身“判定命中”的性能是不可忽视的，建议仅在必要时时调用。
 
+### 7. 链接
 链接时需要加 -lruledb-r （后缀 -r 表示 release 版）
