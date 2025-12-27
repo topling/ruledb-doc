@@ -158,6 +158,23 @@ if (!db.open(dbdir)) {
     printf("FATAL: db.open(%s) = %s\n", dbdir, db.strerr());
     return 1;
 }
+// 需要读取 dbdir/rule_id_map.txt 将 rule_id 与业务数据关联起来，
+// db.load_rule_map 是个实现该功能的工具函数
+vector<int> rule_id_to_category_id; // 业务类别ID
+rule_id_to_category_id.reserve(db.total_rules()); // 写法1
+rule_id_to_category_id.resize (db.total_rules()); // 写法2
+// 必须先 open db 再 load_rule_map
+int ret = db.load_rule_map([&](int rule_id, const char* category) {
+    // category 是业务数据，可以任意复杂，这里仅以最简单的情形为例
+    assert(rule_id == rule_id_to_category_id.size()); // 写法1, 必然相等
+    assert(rule_id  < rule_id_to_category_id.size()); // 写法2
+    rule_id_to_category_id.push_back(atoi(category)); // 写法1, 无需 rule_id
+    rule_id_to_category_id[rule_id] = atoi(category); // 写法2
+});
+if (ret < 0) {
+    printf("FATAL: db.load_rule_map() = %s\n", db.strerr());
+    return 1;
+}
 RuleMatcher matcher; // 可复用 matcher 对象，减少内存分配次数，不可多线程使用
 if (!matcher.init(db)) {
     printf("FATAL: matcher.init(%s) = %s\n", dbdir, matcher.strerr());
@@ -185,10 +202,14 @@ auto& matchset = matcher.get_result();
 if (matchset.empty()) {
     // 没有命中任何规则
 }
-// 初始化时可从 dbdir/rule_id_map.txt 中将 rule_id 与业务数据关联起来
-// 这里仅打印命中的规则
-for (int rule_id : matchset)
-    printf(" %d", rule_id);
+for (int rule_id : matchset) {
+    printf(" %d(category %d)", rule_id, rule_id_to_category_id[rule_id]);
+    if (SomeCondition(rule_id_to_category_id[rule_id])) {
+        for (auto& [fieldname, pos_vec] = matcher.get_match_pos(rule_id)) {
+            // print fieldname & pos_vec
+        }
+    }
+}
 ```
 
 链接时需要加 -lruledb-r （后缀 -r 表示 release 版）
