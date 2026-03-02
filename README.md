@@ -238,20 +238,37 @@ if (!db.open(dbdir)) {
 
 ### 2. 关联业务数据
 ```c++
-// 需要读取 dbdir/rule_id_map.txt 将 rule_id 与业务数据关联起来，
-// db.load_rule_map 是个实现该功能的工具函数
-vector<int> rule_id_to_category_id; // 业务类别ID
-rule_id_to_category_id.reserve(db.total_rules()); // 写法1
-rule_id_to_category_id.resize (db.total_rules()); // 写法2
 // 必须先 open db 再 load_rule_map
-int ret = db.load_rule_map([&](int rule_id, const char* category) {
-    // category 是业务数据，可以任意复杂，这里仅以最简单的情形为例
-    assert(rule_id == rule_id_to_category_id.size()); // 写法1, 必然相等
-    assert(rule_id  < rule_id_to_category_id.size()); // 写法2
-    rule_id_to_category_id.push_back(atoi(category)); // 写法1, 无需 rule_id
-    rule_id_to_category_id[rule_id] = atoi(category); // 写法2
-});
-if (ret < 0) {
+// 业务数据是业务方类别 id, 用 atoi 解析
+if (!db.load_rule_map<int>(&atoi)) {
+    printf("FATAL: db.load_rule_map() = %s\n", db.strerr());
+    return 1;
+}
+
+// 复杂的业务数据
+struct ComplexUserData {
+    long id1, id2;
+    std::string complex_data;
+};
+// parse 可以抛出异常
+static void parse_udata(ComplexUserData* p, const char* str_udata) {
+    // format: id1_id2_{complex_data} #  '_' is separator
+    const char* curr = str_udata;
+    char* next = nullptr;
+    p->id1 = strtol(curr, &next, 10);
+    if (curr == next || *next != '_') {
+        throw std::logic_error("format error 1");
+    }
+    curr = ++next; // skip '_'
+    p->id2 = strtol(curr, &next, 10);
+    if (curr == next || *next != '_') {
+        throw std::logic_error("format error 2");
+    }
+    curr = ++next; // skip '_'
+    // 因 p->complex_data 尚未构造，所以不能写成 p->complex_data = curr
+    new(&p->complex_data)std::string(curr);
+}
+if (!db.load_rule_map<ComplexUserData>(&parse_udata)) {
     printf("FATAL: db.load_rule_map() = %s\n", db.strerr());
     return 1;
 }
@@ -364,8 +381,9 @@ if (matchset.empty()) {
 ### 6. 打印匹配结果
 ```c++
 for (int rule_id : matchset) {
-    printf(" %d(category %d)", rule_id, rule_id_to_category_id[rule_id]);
-    if (SomeCondition(rule_id_to_category_id[rule_id])) {
+    auto category_id = matcher.get_udata<int>(rule_id);
+    printf(" %d(category %d)", rule_id, category_id);
+    if (SomeCondition(category_id)) {
         for (auto& [fieldname, pos_vec] : matcher.get_match_pos(rule_id)) {
             // print fieldname & pos_vec
         }
@@ -375,5 +393,24 @@ for (int rule_id : matchset) {
 get_match_pos 涉及匹配路径的回溯，单次调用开销一般在30微秒($$30\mu s$$)级别。
 虽然相比同类方案有数量级的优势，但相比 ruledb 自身“判定命中”的性能是不可忽视的，建议仅在必要时时调用。
 
-### 7. 链接
+### 7. 热更新/替换
+热替换之后，现有的 matcher 仍然引用旧的 db，新创建的 matcher 才会使用新的 db。
+
+热替换是事务性的，如果失败，现有 db 保持不变，相当于啥也没发生。
+```c++
+if (db.hotswap<ComplexUserData>(new_dbdir, &parse_udata)) {
+    printf("SUCCESS\n");
+} else {
+    printf("FAIL: db.hotswap() error = %s\n", db.strerr());
+}
+```
+
+在 Linux 下，`new_dbdir` 可以**保持与原 dbdir 相同**，然后：
+
+1. 删除原 dbdir, 例如为简单起见用外部脚本删除，**绝不能直接覆盖**！
+   * 工业应用中注意备份旧数据
+2. 调用 rule_db_build.sh 编译新规则库
+3. 最后调用 hotswap
+
+### 8. 链接
 链接时需要加 -lruledb-r （后缀 -r 表示 release 版）
