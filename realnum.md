@@ -1,4 +1,5 @@
 # realnum 实数(小数)
+[**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 `{i{min,max}}` 表达的是 [bigint](bigint.md) 范围，很多情况下我们需要实数范围，整数就难以实现了。
 

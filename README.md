@@ -6,7 +6,8 @@ Topling 规则数据库的功能是：将 $$\color{#DC143C}{预定义规则}$$ �
 百万条以上的规则，每条规则的表达式可以任意复杂。表达式的原生数据类型是字符串，也能
 高效地支持 [数值](integer-fields.md) 与 [geo空间数据](geo-fields.md)，以及不限宽度的[整数(范围)](bigint.md)，[实数(范围)](realnum.md)，支持[联合索引](realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)。
 
-Topling 规则数据库是商业软件，虽未开源也未开放下载，但底层的正则表达式引擎、正则语言代数运算、NFA/DFA lib 是[开源的](https://github.com/topling/topling-ark)。
+Topling 规则数据库是商业软件，虽未开源，但底层的正则表达式引擎、正则语言代数运算、NFA/DFA lib 是[开源的](https://github.com/topling/topling-ark)。
+> [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 ## 规则表达式
 
@@ -202,6 +203,7 @@ near 链式比较，如果有常量 {freq}，只能位于末尾：
 每行规则可以带有关联数据，规则本身和关联数据以 tab '\\t' 分隔，关联数据用来将规则ID和业务数据关联起来，规则本身是第一列，关联数据是第二列。
 
 ## 编译规则库
+[**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 `rule_db_build.exe` 是规则库编译程序（linux 上也有 .exe 后缀），用来将规则库源文件编译为二进制规则数据库，命令行用法：
 
@@ -414,3 +416,4 @@ if (db.hotswap<ComplexUserData>(new_dbdir, &parse_udata)) {
 
 ### 8. 链接
 链接时需要加 -lruledb-r （后缀 -r 表示 release 版）
+> [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)

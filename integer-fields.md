@@ -1,4 +1,5 @@
 # 整数字段
+[**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 规则数据库仅包含文本匹配功能，原则上不支持文本之外的其它类型，但是我们可以通过一些技巧，实现非常高效的支持。
 
