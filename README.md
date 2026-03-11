@@ -291,12 +291,12 @@ if (!matcher.init(db)) {
 }
 // true 表示对未知字段不报错，而是将所有未知字段拼接后作为通用字段内容
 // 默认就是 true，这里只是明确设置一下
-matcher.ignore_unknown_fields(true);
+matcher.treat_unknown_fields_as_content(true);
 ```
 
 ### 4. 构造文档对象
 1. rule 中定义的无 fieldname 的表达式会被当做 content 字段的表达式
-1. 未知字段会按 content 字段进行匹配(需要ignore_unknown_fields(true))
+1. 未知字段会按 content 字段进行匹配(需要treat_unknown_fields_as_content(true))
 
 ### 4.1. 最简单的情况
 ```c++
