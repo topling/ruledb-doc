@@ -1,5 +1,6 @@
 #include "tools_common.h"
 #include <terark/json.hpp>
+#include <terark/util/mmap.hpp>
 void usage(const char* prog) {
     fprintf(stderr, R"EOS(Usage:
    %s Options InputTabSeperateDocFile
@@ -18,23 +19,14 @@ Options:
 )EOS"
         , prog);
 }
-static std::shared_ptr<std::string>
-get_field_data(json& jval) {
-    using namespace std;
-    if (jval.is_object())
-        return make_shared<string>(std::move(jval.at("text").get_ref<string&>()));
-    else
-        return make_shared<string>(std::move(jval.get_ref<string&>()));
-}
-static bool is_regex(const json& jval) {
-    if (jval.is_object())
-        return jval.at("is_regex").get<bool>();
-    else
-        return false;
+namespace topling {
+// ref to libruledb.so
+std::shared_ptr<std::string> get_field_data(json&);
+bool is_regex(const json& jval);
 }
 enum JsonType { kNotJson = 0, kParseJson = 1, kMatchJson = 2 };
 int main(int argc, char** argv) {
-    bool ignore_unknow_fields = false;
+    bool treat_unknown_fields_as_content = false;
     JsonType json_type = kNotJson;
     bool be_quiet = false;
     bool show_pos = false;
@@ -56,7 +48,7 @@ int main(int argc, char** argv) {
             dbdir = optarg;
             break;
         case 'I':
-            ignore_unknow_fields = true;
+            treat_unknown_fields_as_content = true;
             break;
         case 'j':
             json_type = optarg ? (JsonType)atoi(optarg) : kParseJson;
@@ -81,17 +73,18 @@ GetoptDone:
         usage(argv[0]);
         return 2;
     }
-    Auto_close_fp finput;
-    if (optind < argc) {
-        const char* finput_name = argv[optind];
-        finput = fopen(finput_name, "r");
-        if (NULL == finput) {
-            HIGH_LIGHT("FATAL: fopen(%s, r) = %s\n", finput_name, strerror(errno));
-            return 3;
-        }
+    if (optind >= argc) {
+        HIGH_LIGHT("ERROR: Missing InputFile\n");
+        usage(argv[0]);
+        return 2;
     }
-    else if (g_debug >= 1) {
-        HIGH_LIGHT("Reading from stdin...");
+    const char* finput_name = argv[optind];
+    MmapWholeFile fmmap;
+    try {
+        MmapWholeFile(finput_name).swap(fmmap);
+    } catch (const std::exception& ex) {
+        HIGH_LIGHT("FATAL: mmap file(%s) = %s\n", finput_name, ex.what());
+        return 1;
     }
     RuleDatabase db;
     if (!db.open(dbdir)) {
@@ -103,10 +96,8 @@ GetoptDone:
         HIGH_LIGHT("FATAL: matcher.init(%s) = %s\n", dbdir.c_str(), matcher.strerr());
         return 1;
     }
-    matcher.ignore_unknown_fields(ignore_unknow_fields);
+    matcher.treat_unknown_fields_as_content(treat_unknown_fields_as_content);
     matcher.regex_start_at_word(start_at_word);
-    LineBuf line;
-    valvec<fstring> F; // fields
     profiling pf;
     long long t0 = pf.now();
     long long len_matched = 0, len_missed = 0;
@@ -114,10 +105,9 @@ GetoptDone:
     long long sum_candidate_rules = 0;
     int num_matched = 0, num_missed = 0;
   for (int rpt = 0; rpt < repeat; rpt++) {
-    rewind(finput.self_or(stdin));
-    while (line.getline(finput.self_or(stdin)) > 0) {
+    for (size_t line_iter = 0; line_iter < fmmap.size; ) {
+        fstring line = fmmap.memory().iter_field(line_iter, '\n').chomp();
         lineno++;
-        line.chomp();
         map<string, RuleMatcher::ComplexQuery> doc;
         if (kParseJson == json_type) try {
             json js = json::parse(line.begin(), line.end());
@@ -141,22 +131,32 @@ GetoptDone:
                 continue;
             }
         } else {
-            line.split('\t', &F);
-            for (size_t i = 0; i < F.size(); i++) {
-                int name_end = -1;
-                char mark;
-                int num = sscanf(F[i].c_str(), "%*[a-zA-Z0-9_-]%n:%c", &name_end, &mark);
-                if (num == 1 && !isdigit(F[i].uch(0))) {
-                    fstring name = F[i].prefix(name_end).trim();
-                    fstring value = F[i].substr(name_end+1).trim();
+            for(size_t i = 0, field_iter = 0; field_iter < line.size(); i++) {
+                auto fv = line.iter_field(field_iter, '\t').trim();
+                if (fv.empty())
+                    continue;
+                intptr_t name_end = 0;
+                for (; name_end < fv.n; name_end++) {
+                    byte_t ch = fv[name_end];
+                    if (isalnum(ch) || '.' == ch || '_' == ch || '-' == ch) {
+                        //
+                    } else if (':' == ch) {
+                        break;
+                    } else {
+                        name_end = fv.n;
+                        break;
+                    }
+                }
+                if (name_end < fv.n && !isdigit(fv.uch(0))) {
+                    fstring name = fv.prefix(name_end).trim();
+                    fstring value = fv.substr(name_end+1).trim();
                     DEBUG(4, "F[%zd]: name: %.*s, value: %.*s", i, name.ilen(), name, value.ilen(), value);
                     doc[name.str()] = { make_shared<string>(value.str()),
                                         value.size() && strchr("({", value[0]) };
                 }
                 else {
-                    DEBUG(4, "F[%zd] missing fieldname, treating it as a general field: %s", i, F[i]);
-                    fstring fieldvalue = F[i].trim();
-                    doc["zth"+to_string(i)].text = make_shared<string>(fieldvalue.str());
+                    DEBUG(4, "F[%zd] missing fieldname, treating it as a general field: %s", i, fv);
+                    doc["zth"+to_string(i)].text = make_shared<string>(fv.str());
                 }
             }
         }
@@ -184,11 +184,11 @@ GetoptDone:
                         doc[key] = {get_field_data(val), is_regex(val)};
                 }
                 for (int rule_id : matchset) {
-                    auto detail = matcher.get_match_pos(rule_id);
+                    auto detail = matcher.get_match_pos_view(rule_id);
                     printf("  rule %d with fields %zd\n", rule_id, detail.size());
                     for (auto& [field, vec] : detail) {
-                        printf("    field \"%s\" with %zd hits:", field.c_str(), vec.size());
-                        auto iter = doc.find(field);
+                        printf("    field \"%s\" with %zd hits:", field.data(), vec.size());
+                        auto iter = doc.find(std::string(field));
                         if (iter == doc.end()) {
                             printf(" composite index full match\n");
                             continue;
@@ -206,9 +206,13 @@ GetoptDone:
             len_matched += line.size();
             sum_matched_rules += matchset.size();
         }
+        if (be_quiet && show_pos) {
+            fflush(stdout);
+        }
         sum_candidate_rules += matcher.total_candidates();
     }
   } // repeat
+  if (!(be_quiet && show_pos)) {
     long long t1 = pf.now();
     printf("time %8.3f sec, valid docs %d matched %lld rules of candidates %lld(%.3f%%), matched %d %.3f MB, missed %d %.3f MB, %.3f MB/sec\n",
         pf.sf(t0,t1), num_matched + num_missed, sum_matched_rules,
@@ -217,5 +221,14 @@ GetoptDone:
         num_missed , len_missed  / 1e6,
         (len_matched + len_missed) / pf.uf(t0,t1)
     );
+    long long totaldoc = num_matched + num_missed;
+    printf("\n");
+    printf("perf        |   num   | latency(us) | operations/sec\n");
+    printf("-----------:|--------:|---------:|---------------:\n");
+    printf("document    | %7lld | %8.3f | %8.1f\n", totaldoc, pf.uf(t0,t1)/totaldoc, totaldoc/pf.sf(t0,t1));
+    printf("matched rule| %7lld | %8.3f | %8.1f\n", sum_matched_rules, pf.uf(t0,t1)/sum_matched_rules, sum_matched_rules/pf.sf(t0,t1));
+    printf("candite rule| %7lld | %8.3f | %8.1f\n", sum_candidate_rules, pf.uf(t0,t1)/sum_candidate_rules, sum_candidate_rules/pf.sf(t0,t1));
+    printf("\n");
+  }
     return 0;
 }
