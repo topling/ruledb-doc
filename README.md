@@ -202,13 +202,14 @@ near 链式比较，如果有常量 {freq}，只能位于末尾：
 
 每行规则可以带有关联数据，规则本身和关联数据以 tab '\\t' 分隔，关联数据用来将规则ID和业务数据关联起来，规则本身是第一列，关联数据是第二列。
 
-## 编译规则库
+## RuleDB 编译器
 [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
-`rule_db_build.exe` 是规则库编译程序（linux 上也有 .exe 后缀），用来将规则库源文件编译为二进制规则数据库，命令行用法：
+RuleDB 编译器用来将规则库源文件编译为二进制规则数据库，命令行用法：
 
 ```
 rule_db_build.exe <选项>  <规则源码文件>
+# linux 下也带 .exe 后缀
 ```
 
  选项 | 参数 | 解释说明
@@ -218,15 +219,18 @@ rule_db_build.exe <选项>  <规则源码文件>
 -o    | 输出目录 | 编译输出的二进制规则数据库，包含多个文件，<br>目录中的现存文件会被覆盖，如果目录不存在会自动创建。<br>建议编译前删除输出目录以获得干净的编译结果。
 -F    | 字段名   | 添加一个用户自定义字段，可以包含多个 -F
 -q    | 无参数   | 不打印进度及不重要的警告信息等
+-S [S大写]|	bool | 默认 true；表示是否生成(详尽的) vm 汇编代码，用来辅助调试，提高可观测性、可解释性
 -s    | 文件名   | 停止词文件，每行一个停止词
 -W    | 文件名   | 指定一个词频文件(word \\t freq)，用来优化 allof/anyof<br> freq <= 0 会被认为是停止词<br>所有词频相关的错误都会被忽略
 
-rule_db_build.exe 执行完后，会在输出目录下生成一些文件，其中包含一个 Makefile，再进入该目录执行 make 才会将数据库完全建好。我们提供了 rule_db_build.sh 脚本用来自动化这个流程，其用法与 rule_db_build.exe 相同，额外会自动运行 make 将数据库完全建好。
+-s 和 -W 是可选参数，一般无需提供，编译器会采用启发式均衡迭代法自动优化召回，大部分情况下效果更好。
 
-输出目录中包含一个重要文件 rule_id_map.txt，其中内容(tab分隔)第一列是 rule_id，第二列是规则库源文件中的业务关联数据。第一列的 rule_id 总是从 0 到 n-1, n 为成功编译的规则，编译失败的规则被自动忽略，不分配 rule_id，不会出现在 rule_id_map.txt 中。
+rule_db_build.exe 执行完后，会在输出目录下生成一些文件，其中包含一个 Makefile，再进入该目录执行 make 才会将数据库完全建好。我们提供了 **rule_db_build.sh** 脚本用来自动化这个流程，其用法与 rule_db_build.exe 相同，额外会自动运行 make 将数据库完全建好。
 
 ## API 示例用法
-这里是一个[完整的示例程序](match_doc.cpp)。
+C++ API 是 Pimpl 风格的，只依赖标准库，不依赖任何第三方头文件，具有优良的 ABI 兼容性，将所有复杂性都封装在运行时动态库之内。RuleDB C++ API 不抛异常（RuleDB 内部使用了异常，但异常不会逃逸出 api 边界）
+
+RuleDB SDK 的 sample 目录中有一个完整的示例程序 [match_doc.cpp](match_doc.cpp) 。以下分部讲解 API 用法：
 
 ### 1. 打开数据库
 ```c++
@@ -252,7 +256,8 @@ struct ComplexUserData {
     long id1, id2;
     std::string complex_data;
 };
-// parse 可以抛出异常
+// parse 可以抛出异常，该异常会被 RuleDB 内部捕获，会导致 load_rule_map
+// 返回 false, 用户代码通过 db.strerr() 获取异常上下文及异常消息
 static void parse_udata(ComplexUserData* p, const char* str_udata) {
     // format: id1_id2_{complex_data} #  '_' is separator
     const char* curr = str_udata;

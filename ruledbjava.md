@@ -3,6 +3,7 @@
 ## RuleDB
 RuleDB 对象是 `AutoCloseable` 的，包含以下方法：
 ```java
+package cn.topling.ruledb;
 class RuleDB implements AutoCloseable {
     public static RuleDB open(String dbdir);
     public void hotSwap(String dbdir);
@@ -19,6 +20,7 @@ java RuleDB open 时自动将 UserData 存储为字符串，`hotSwap` 也会自�
 ## RuleMatcher
 
 ```java
+package cn.topling.ruledb;
 public class RuleMatcher implements AutoCloseable {
     public int[] match(Map<String, String> doc);
     public int[] matchComplex(Map<String, ComplexQuery> doc);
