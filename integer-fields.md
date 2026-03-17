@@ -2,6 +2,8 @@
 [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 ## 引言
+> 该功能是在 RuleDB 的早期功能，应当优先使用 [任意位整数](#bigint.md)，不过该功能在某些情况下仍然有它的价值。
+
 规则数据库仅包含文本匹配功能，原则上不支持文本之外的其它类型，但是我们可以通过一些技巧，实现非常高效的支持。
 
 其原理是：我们可以将整数编码为 utf8 字符，然后利用字符串匹配来实现范围与逻辑判断。
