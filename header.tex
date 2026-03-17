@@ -1,0 +1,46 @@
+% header.tex
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\usepackage{adjustbox}   % ✅ 用于自动缩放过宽的表格
+\usepackage{booktabs}    % ✅ 用于更美观的表格线
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage[most]{tcolorbox}
+
+\raggedbottom
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\onehalfspacing
+
+% 1. 章节标题间距控制 (解决之前标题前空白太大的问题)
+\titlespacing*{\chapter}{-10pt}{-30pt}{20pt}
+\titleformat{\chapter}[block]
+  {\normalfont\huge\bfseries}
+  {\thechapter}
+  {1em}
+  {}
+\patchcmd{\chapter}{\if@openright\ifodd\c@page\else\hbox{}\newpage\fi\fi}{}{}{}
+
+% 增加行高，防止文字贴着表格线
+\renewcommand{\arraystretch}{1.5}
+
+% 引用块样式配置
+% 定义颜色
+\definecolor{quotebg}{RGB}{245, 245, 245}       % 浅灰背景
+\definecolor{quoteborder}{RGB}{200, 200, 200}   % 深灰边框
+
+% 重定义 quote 环境
+\tcolorboxenvironment{quote}{
+    breakable,              % 支持跨页
+    colback=quotebg,        % 背景色
+    colframe=quoteborder,   % 边框色
+    boxrule=0pt,            % 无边框
+    leftrule=4pt,           % 左边框 4pt（GitHub 风格）
+    left=6pt,               % 内容左边距
+    right=6pt,              % 内容右边距
+    top=6pt,                % 内容上边距
+    bottom=6pt,             % 内容下边距
+    arc=0pt,                % 直角
+    sharp corners           % 锐角
+}
