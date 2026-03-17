@@ -1,17 +1,18 @@
-# 概述
+# <a name="rest-api"></a> RESTful 服务
 RuleDB 实现了一个简单的 HTTP REST API Service，使用的是 civetweb server。支持多个 Database。输入输出均使用 json。
 
 > [**下载 90 天试用版(包括 SDK)**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
-## （一）启动 ruledb_rest_http
+## <a name="一启动-ruledb_rest_http"></a>（一）启动 ruledb_rest_http
 启动前请正确设置 `PATH` 与 `LD_LIBRARY_PATH`。命令行参数：
-* -Dname=value 或
-* --name=value
+
+* `-Dname=value` 或
+* `--name=value`
 
 本服务自身的选项参数：
 
 参数名    | 参数类型 | 默认值 |说明
----------|---------|-------|------
+---------|---------|-------|----------------------------------------------------------------
 dbroot   | string  | 无    | RuleDB 多个 Database 的根目录，每个子目录是一个 RuleDB Database
 tmpdir   | string  | /tmp  | 临时目录，用做在线编译，该目录应当和 dbroot **位于同一个文件系统**，从而编译成功后可以原子性地将编译输出目录移动(安装)到 dbroot
 loglevel | int     | 0     | 日志级别，日志直接输出到 stderr，日志级别是数字 0 ~ 3，越大越详细
@@ -51,18 +52,19 @@ HTTP Method: POST
 
 POST body 是规则源码，不是 JSON。
 
-参数名 |参数类型|说明
-------|-------|-----
-dbname|string |指定 Database 的名字，只能包含字母数字和`_`,`-`,`.`，首字符只能为字母
+参数名  |参数类型|说明
+-------|-------|-------------------------------------------------------------
+dbname |string |指定 Database 的名字，只能包含字母数字和`_`,`-`,`.`，首字符只能为字母
 overwrite|bool|是否覆盖替换已存在的Database
-F     |string |定义字段，可指定多次定义多个字段，同[编译器命令行参数](README.md#ruledb-编译器)
-i     |string |定义索引，可指定多次定义多个索引，同[编译器命令行参数](README.md#ruledb-编译器)
-S[大写]|bool |默认 true；表示是否生成(详尽的) vm 汇编代码，用来辅助调试，提高可观测性、可解释性
-q	 |无参数  |不打印进度及不重要的警告信息等
+F      |string |定义字段，可指定多次定义多个字段，同[编译器命令行参数](README.md#ruledb-编译器)
+i      |string |定义索引，可指定多次定义多个索引，同[编译器命令行参数](README.md#ruledb-编译器)
+S[大写] |bool  |默认 true；表示是否生成(详尽的) vm 汇编代码，用来辅助调试，提高可观测性、可解释性
+q	     |无参数  |不打印进度及不重要的警告信息等
 
 示例：
 ```bash
-curl --data-binary @file 'http://127.0.0.1:1082/_compile?dbname=db_123a&F=brandname&F=osname&overwrite=true'
+curl --data-binary @file \
+  'http://127.0.0.1:1082/_compile?dbname=db_123a&F=brandname&F=osname&overwrite=true'
 ```
 
 file 的内容不是 JSON，是多行文本文件，每行内容为 `规则表达式` `\t` `业务id`，
@@ -93,6 +95,7 @@ file 的内容不是 JSON，是多行文本文件，每行内容为 `规则表�
 如果是编译新 Database 则 seqversion=0，否则是现有 Database 的 seqversion，_compile 触发的随后的自动加载/热更新会设置/增加 seqversion。
 
 **注意：**
+
 1. 使用 curl 命令时必须用 `--data-binary`，不能用 `-d/--data`，不然会丢失换行符导致编译错误；
 1. 使用手动编译代替该 _compile 命令时：
    * 传给 [编译器 rule_db_build.sh](README.md#ruledb-编译器) 的输出目录应当和 dbroot 在同一个文件系统中，编译成功后移动到 dbroot 中；
@@ -103,12 +106,12 @@ file 的内容不是 JSON，是多行文本文件，每行内容为 `规则表�
 #### Request (输入参数)
 HTTP Method: POST
 
-参数名|参数类型|默认值|说明
------|-------|-----|-----
-pretty |bool|false|json pretty 格式化打印
-withpos|int|0|0: 不要匹配位置<br>1: 需要匹配位置 <br>2: 带上 match_type 和 match_id
-treat_unknown_fields_as_content|bool|true|让未知字段按 content 字段进行匹配
-regex_start_at_word|bool|false|正则表达式匹配时从 word 边界开始，一般无需设置
+参数名         |参数类型| 默认值  |说明
+--------------|-------|--------|-----------------------------------------------------------
+pretty        |bool   |false   |json pretty 格式化打印
+withpos       |int    |0       |0: 不要匹配位置<br>1: 需要匹配位置 <br>2: 带上 match_type 和 match_id
+`treat_unknown` `_fields_` `as_content`|bool|true|让未知字段按 content 字段进行匹配
+`regex_start` `_at_word`|bool|false |正则表达式匹配时从 word 边界开始，一般无需设置
 
 POST body 为 JSON [详情参考](README.md#43-json-字符串作为-doc)
 
@@ -185,6 +188,7 @@ int  ruledb_rest_main(int argc, char* argv[]);
 
 ### 3.1 ruledb_run_rest_service
 `options` 参数遵循 civetweb 惯例：
+
 * `options[2*i + 0]` 是第 i 个选项 name
 * `options[2*i + 1]` 是第 i 个选项 value
 

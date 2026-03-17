@@ -1,4 +1,6 @@
-# 地理位置查询
+# <a name="geo-field"></a> 地理位置查询
+
+## 引言
 
 跟[整数字段](integer-fields.md)类似，规则数据库对地理位置表达式没有直接的支持。可以使用**地理空间哈希（Geohash）** 和正则表达式，把对地理位置的限定转化为 $\text{Geohash}$ 限定，将地理位置查询转化为规则引擎的高性能字符串匹配。
 
@@ -20,7 +22,7 @@ $\text{Geohash}$ 是一种将二维的经纬度坐标编码为一个**一维字�
 
 我们定义一个伪字段 `user_location`，其内容为用户的 $\text{Geohash}$ 码。
 
-```
+```bash
 # 匹配以 u4pruy 开头的所有 geohash
 user_location{{u4pruy[0-9a-z]*}}
 ```
@@ -29,7 +31,7 @@ user_location{{u4pruy[0-9a-z]*}}
 
 如果一个规则需要匹配多个不连续的区域，可以使用正则的 $\text{OR}$ 语法：
 
-```
+```bash
 # 匹配三个不连续的区域
 user_location{{(u4pruy|u4prqg|u4p1k2)[0-9a-z]*}}
 ```
@@ -43,7 +45,7 @@ user_location{{(u4pruy|u4prqg|u4p1k2)[0-9a-z]*}}
 **需求：** 匹配 NYC 的 $\text{dr5r}$ 区域（ $4.9\text{km} \times 4.9\text{km}$），但排除其中的中央公园 $\text{dr5ru}$ 区域（ $1.2\text{km} \times 0.6\text{km}$ ）。
 
 **规则定义：**
-```
+```bash
 user_location[ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ]
 ```
 * `{{dr5r[0-9a-z]*}}`：所有位于大区域 $\text{A}$ 内的 $\text{子区域}$。
@@ -52,12 +54,13 @@ user_location[ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ]
 
 ### 2. 案例：区域限定与其它限定混合
 **需求：** 匹配区域 $\text{A}$ 和区域 $\text{B}$ 的共同交集，并且性别为男，年龄 20 到 25 岁，收入 8000 到 10000。
+
 > RuleDB 支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)，此处仅作为原理性展示
 
 提示：参考[整数字段](integer-fields.md) 限定。
 
 **规则定义：**
-```
+```bash
 gender_age_income_location[ \
     {{1[\i{20}-\i{25}][\i{8000}-\i{10000}]}} . \
     ( {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ) \
@@ -95,7 +98,7 @@ gender_age_income_location[ \
 
 ## 创建规则库
 需要用 -F fieldname 定义字段
-```
+```bash
 rule_db_build.sh -F user_location \
                  -F gender_age_income_location \
                  -o dbdir rule.txt
