@@ -212,7 +212,7 @@ near 链式比较，如果有常量 {freq}，只能位于末尾：
 每行规则可以带有关联数据，规则本身和关联数据以 tab '\\t' 分隔，关联数据用来将规则ID和业务数据关联起来，规则本身是第一列，关联数据是第二列。
 
 ## <a name="ruledb-编译器"></a> RuleDB 编译器
-[**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
+> [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 RuleDB 编译器用来将规则库源文件编译为二进制规则数据库，命令行用法：
 
