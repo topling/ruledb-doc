@@ -291,7 +291,6 @@ if (!db.load_rule_map<ComplexUserData>(&parse_udata)) {
 ```
 
 ### 3. 创建匹配器，设置匹配选项
-db 的生存期必须覆盖 matcher 的生存期。
 ```c++
 RuleMatcher matcher; // 可复用 matcher 对象，减少内存分配次数，不可多线程使用
 if (!matcher.init(db)) {
