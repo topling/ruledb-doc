@@ -2,7 +2,7 @@
 > [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
 
 ## 引言
-`{i{min,max}}` 表达的是 [bigint](bigint.md) 范围，很多情况下我们需要实数范围，整数就难以实现了。
+`{i{min,max}}` 表达的是 [bigint](bigint.md#bigint) 范围，很多情况下我们需要实数范围，整数就难以实现了。
 
 我们之所以用**实数**这个词，而不是用**浮点数**，是因为在 RuleDB 中，实数也是用字符串表达的，并且没有精度限制，没有精度限制的**实数**，自然不是**浮点数**。
 
@@ -21,7 +21,7 @@
 
 ## <a name="lat-longt"></a>以经纬度为例
 
-在 [geo-fields](geo-fields.md) 中，我们使用 geohash 来表达地理位置，geohash 是在数据库不支持多维索引的情况下的权宜之计。既然 RuleDB 支持多维索引，自然应当首选多维索引：
+在 [geo-fields](geo-fields.md#geo-field) 中，我们使用 geohash 来表达地理位置，geohash 是在数据库不支持多维索引的情况下的权宜之计。既然 RuleDB 支持多维索引，自然应当首选多维索引：
 
 ```bash
 rule_db_build.sh \

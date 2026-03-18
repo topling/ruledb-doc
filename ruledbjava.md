@@ -1,4 +1,4 @@
-# <a name="ruledbjava"></a> RuleDB Java API
+# <a name="ruledbjava"></a> Java API
 
 ## RuleDB
 RuleDB 对象是 `AutoCloseable` 的，包含以下方法：

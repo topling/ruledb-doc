@@ -2,7 +2,7 @@
 > [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)，满意可 [购买正式版](mailto:contact@topling.cn)
 
 ## 引言
-在 [integer-fields.md](integer-fields.md) 中，我们讲述了把 **Unicode 码点**
+在 [integer-fields.md](integer-fields.md#utf8-int) 中，我们讲述了把 **Unicode 码点**
 当做整数的编码方式，解决了一些问题，但是 **Unicode 码点** 的问题在于，它能表示的
 整数范围太小，只有 0 到 0x10FFFF。本文讲述 **大整数范围** 的表示方法。
 
@@ -39,7 +39,7 @@
 ## 复杂点的例子
 > RuleDB 支持[联合索引](realnum.md#lat-longt)，此处仅作为原理性展示
 
-我们仍以 [integer-fields.md](integer-fields.md) 中的 gender_age_income 为例：
+我们仍以 [integer-fields.md](integer-fields.md#utf8-int) 中的 gender_age_income 为例：
 ```bash
 gender_age_income["0 ".{i{26,30}}." ".{i{12000,18000}}]
 gender_age_income["0 ".{i{20,25}}." ".{i{-9000,-8000}}]

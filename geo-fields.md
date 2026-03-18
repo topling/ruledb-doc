@@ -2,7 +2,7 @@
 
 ## 引言
 
-跟[整数字段](integer-fields.md)类似，规则数据库对地理位置表达式没有直接的支持。可以使用**地理空间哈希（Geohash）** 和正则表达式，把对地理位置的限定转化为 $\text{Geohash}$ 限定，将地理位置查询转化为规则引擎的高性能字符串匹配。
+跟[整数字段](integer-fields.md#utf8-int)类似，规则数据库对地理位置表达式没有直接的支持。可以使用**地理空间哈希（Geohash）** 和正则表达式，把对地理位置的限定转化为 $\text{Geohash}$ 限定，将地理位置查询转化为规则引擎的高性能字符串匹配。
 
 > 本章仅供参考，geofield 只是在缺乏多维索引情况下的一个技巧，geo 场景中更合适的功能是 RuleDB 多维联合索引（经纬度二维索引）。
 
@@ -59,7 +59,7 @@ user_location[ {{dr5r[0-9a-z]*}} - {{dr5ru[0-9a-z]*}} ]
 
 > RuleDB 支持[联合索引](https://github.com/topling/ruledb-doc/blob/main/realnum.md#%E4%BE%8B%E7%BB%8F%E7%BA%AC%E5%BA%A6)，此处仅作为原理性展示
 
-提示：参考[整数字段](integer-fields.md) 限定。
+提示：参考[整数字段](integer-fields.md#utf8-int) 限定。
 
 **规则定义：**
 ```bash
