@@ -17,6 +17,8 @@ class RuleDB implements AutoCloseable {
 
 java RuleDB open 时自动将 UserData 存储为字符串，`hotSwap` 也会自动处理 String 类型的 UserData 。
 
+JNI 不管 UserData 的内容细节，业务代码应当自己解析，或使用快捷方式 `getUserLongId`（这适用于大多数场景）。
+
 ## RuleMatcher
 
 ```java
@@ -35,7 +37,8 @@ public class RuleMatcher implements AutoCloseable {
     public boolean regexStartAtWord();
 
     public int totalCandidates(); // 非必要，仅供统计、日志等
-    public String getUserData(int rule_id); // 必要，关联业务数据
+    public String getUserData(int rule_id); // 必要，关联业务数据，复杂业务
+    public long getUserLongId(int rule_id); // 最简单的业务数据类型：id
 }
 ```
 
@@ -66,7 +69,10 @@ public class MatchPosInfo {
     byte[] jsonStr = fromHttp(...);
     int [] matchset = matcher.matchJson(jsonStr);
     for (int ruleId : matchset) {
-        String userCategoryId = matcher.getUserData(ruleId);
+        // getUserLongId 自动识别 10/16/8进制，需注意 "0123" 会解释为 8 进制
+        long userCategoryId = matcher.getUserLongId(ruleId); // 或复杂情况：
+        // userCategoryId 只是业务数据 UserData 的一部分
+        // long userCategoryId = parseId(matcher.getUserData(ruleId));
         System.out.printf("match category %s%n", userCategoryId);
         if (shouldShowMatchPos(userCategoryId)) {
             Map<String, MatchPosInfo[]> detail = matcher.getMatchPos(ruleId);
