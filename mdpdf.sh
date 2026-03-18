@@ -55,7 +55,11 @@ EOF
     for ((i=0; i < ${#filelist[@]}; i++)) ; do
         file=${filelist[i]}
         ordinal=${ordinal_list[i]}
-        sed -e '1s:\(#.*</a>\) \(.*\):\1'"  ${ordinal}：  "'\2:'  -e 's:\\|:|:' $file
+        sed -e '1s:# <a name="\([^"]*\)"></a> \(.*\):'"# ${ordinal}："'\2 {#\1}:' \
+            -e 's:\(###*\) <a name="\([^"]*\)"></a> *\(.*\):\1 \3 {#\2}:' \
+            -e 's:\]([0-9a-zA-Z_-]*\.md\(#[0-9a-zA-Z_-]*\)):](\1):g' \
+            -e 's:\\|:|:' \
+            $file
         echo
     done
 }
