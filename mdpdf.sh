@@ -8,6 +8,7 @@ filelist=(
   bigint.md
   realnum.md
   integer-fields.md
+  geo-fields.md
   ruledbjava.md
   rest-api.md
   design.md
