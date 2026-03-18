@@ -1,5 +1,5 @@
 # <a name="bigint"></a> 任意位整数
-> [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
+> [**下载 SDK 90 天试用版**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)，满意可 [购买正式版](mailto:contact@topling.cn)
 
 ## 引言
 在 [integer-fields.md](integer-fields.md) 中，我们讲述了把 **Unicode 码点**

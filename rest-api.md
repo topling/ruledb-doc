@@ -1,7 +1,7 @@
 # <a name="rest-api"></a> RESTful 服务
 RuleDB 实现了一个简单的 HTTP REST API Service，使用的是 civetweb server。支持多个 Database。输入输出均使用 json。
 
-> [**下载 90 天试用版(包括 SDK)**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)
+> [**下载 90 天试用版(包括 SDK)**](https://topling-tools.oss-cn-qingdao.aliyuncs.com/topling-ruledb-trial90-Linux-x86_64.tgz)，满意可 [购买正式版](mailto:contact@topling.cn)
 
 ## <a name="一启动-ruledb_rest_http"></a>（一）启动 ruledb_rest_http
 启动前请正确设置 `PATH` 与 `LD_LIBRARY_PATH`。命令行参数：
