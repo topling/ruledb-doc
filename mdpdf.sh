@@ -18,6 +18,7 @@ args=(
     #--highlight-style=pygments # 代码块无围栏无底色
     --highlight-style=tango # 代码块有很浅的浅灰底色
     --top-level-division=chapter
+    --template=cover.tex
     #-V tables
     -V mainfont="AR PL UMing CN"
     -V CJKmainfont="Noto Sans CJK SC"
@@ -38,7 +39,15 @@ function merge() {
 cat << "EOF"
 ---
 title: "RuleDB 用户手册"
-author: "Lei Peng"
+subtitle: "规则引擎：反向搜索，用数据搜索查询条件"
+author: "雷鹏"
+logo: logo.svg
+lang: zh-CN
+institution: 北京拓扑岭科技有限公司
+department: "技术部"
+version: 1.0
+url: topling.cn
+email: contact@topling.cn
 
 ---
 EOF
@@ -49,5 +58,4 @@ EOF
         echo
     done
 }
-merge > tmp.md
-cat tmp.md | pandoc -o ruledb-manual.pdf "${args[@]}"
+merge | pandoc -o ruledb-manual.pdf "${args[@]}"
