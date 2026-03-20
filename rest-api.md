@@ -47,7 +47,7 @@ curl http://127.0.0.1:1082/_list?pretty=1
 }
 ```
 
-### 2.3 /_compile?argname1=argvalue1...
+### 2.3 /_compile
 HTTP Method: POST
 
 POST body 是规则源码，不是 JSON。
@@ -101,7 +101,7 @@ file 的内容不是 JSON，是多行文本文件，每行内容为 `规则表�
    * 传给 [编译器 rule_db_build.sh](README.md#ruledb-编译器) 的输出目录应当和 dbroot 在同一个文件系统中，编译成功后移动到 dbroot 中；
    * 如果直接将编译输出目录指定为 dbroot 的子目录，务必保证输出目录是**新目录**，编译成功后需要手动执行 _hotswap REST（虽然执行 _match 时会自动加载 Database，但会导致在 _match 中加载 DB，从而导致 _match 产生高延迟）。
 
-### 2.4 /{Database}/_match?argname1=argvalue1...
+### 2.4 /{Database}/_match
 
 #### Request (输入参数)
 HTTP Method: POST
