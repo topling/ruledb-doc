@@ -180,7 +180,34 @@ HTTP Method: POST
 
 服务终止后需手动重启进程才能恢复。
 
+### 2.7 /_buildinfo
+HTTP Method: GET
+
+参数名         |参数类型| 默认值  |说明
+--------------|-------|--------|-----------------------------------------------------------
+pretty        |bool   |false   |json pretty 格式化打印
+verbose       |bool   |false   |输出详细信息
+
+示例：
+
+```bash
+curl "http://127.0.0.1:10822/_buildinfo?pretty=1&verbose=1"
+```
+
+返回：
+
+```json
+{
+  "status": "OK",
+  "githash": "eb3ea22fff55413087a1dc69d38d37c133818cc1",
+  "buildinfo": "省略...\n\ncpu_flag: -march=haswell -mbmi -mbmi2\n"
+}
+```
+
 ## （三） C++ API
+
+选择使用以下两个函数，用户程序也可以将本 RESTful 服务嵌入应用程序自身从而避免额外开启 RESTful 进程。
+
 ```c++
 bool ruledb_run_rest_service(const std::vector<std::string>& options);
 int  ruledb_rest_main(int argc, char* argv[]);
