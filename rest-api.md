@@ -110,8 +110,8 @@ HTTP Method: POST
 --------------|-------|--------|-----------------------------------------------------------
 pretty        |bool   |false   |json pretty 格式化打印
 withpos       |int    |0       |0: 不要匹配位置<br>1: 需要匹配位置 <br>2: 带上 match_type 和 match_id
-`treat_unknown` `_fields_` `as_content`|bool|true|让未知字段按 content 字段进行匹配
-`regex_start` `_at_word`|bool|false |正则表达式匹配时从 word 边界开始，一般无需设置
+`treat_unknown` <br> `_fields_` <br> `as_content`|bool|true|让未知字段按 content 字段进行匹配
+`regex_start` <br> `_at_word`|bool|false |正则表达式匹配时从 word 边界开始，一般无需设置
 
 POST body 为 JSON [详情参考](README.md#43-json-字符串作为-doc)
 
