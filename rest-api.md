@@ -199,7 +199,8 @@ curl "http://127.0.0.1:10822/_buildinfo?pretty=1&verbose=1"
 ```json
 {
   "status": "OK",
-  "githash": "eb3ea22fff55413087a1dc69d38d37c133818cc1",
+  "version": "1.0.0",
+  "githash": "ba11c2a5d37ef0671fad3f444493d828f9822981",
   "buildinfo": "省略...\n\ncpu_flag: -march=haswell -mbmi -mbmi2\n"
 }
 ```
