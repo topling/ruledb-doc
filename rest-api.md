@@ -83,7 +83,7 @@ file 的内容不是 JSON，是多行文本文件，每行内容为 `规则表�
 ```json
 {
   "status": "OK",
-  "dbname": "word_rule_with_id_by_web",
+  "dbname": "db_123a",
   "seqversion": 1,
   "beg_ts": "2026-03-15 12:12:44",
   "end_ts": "2026-03-15 12:12:47",
